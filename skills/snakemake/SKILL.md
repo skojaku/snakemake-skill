@@ -16,7 +16,7 @@ project/
 └── data/{dataset}/
     ├── preprocessed/      # Inputs
     ├── derived/           # Computed
-    └── plot_data/         # For figures
+    └── plot_data/         # For figures (optional)
 ```
 
 ## Snakefile
