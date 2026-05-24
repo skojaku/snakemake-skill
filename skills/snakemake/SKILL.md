@@ -13,10 +13,10 @@ project/
 │   ├── rules/             # One .smk per stage
 │   ├── <category>/        # Scripts by purpose (stats/, plot/, fitting/)
 │   └── preprocessing/{dataset}/
-└── data/{dataset}/
-    ├── preprocessed/      # Inputs
-    ├── derived/           # Computed
-    └── plot_data/         # For figures (optional)
+└── data/{dataset}/            # Optional tiered structure:
+    ├── preprocessed/      #   Inputs
+    ├── derived/           #   Computed
+    └── plot_data/         #   For figures
 ```
 
 ## Snakefile
