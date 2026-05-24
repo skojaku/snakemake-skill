@@ -32,9 +32,9 @@ include: "./utils.smk"
 
 All file path constants are `UPPER_CASE` and built with `j()` (alias for `os.path.join`). When a path depends on parameters, use `to_paramspace().wildcard_pattern` to generate the wildcard portion of the filename. This keeps parameterized paths consistent and parseable, e.g., `model_dim~64_lr~0.001.pt`, without ever hand-building `key~value` strings.
 
-Parameters are defined as plain Python dicts where every value is a list, even single values like `{"dim": [64]}`. `to_paramspace()` takes the Cartesian product, so adding a new parameter or value to the dict automatically generates all combinations. No other code changes needed.
+Parameters are defined as plain Python dicts where every value is a list, even single values like `{"dim": [64]}`. `to_paramspace()` takes the Cartesian product, so adding a new parameter or value to the dict automatically generates all combinations. 
 
-Rules always use named inputs and outputs (not positional), so scripts access them by name like `snakemake.input["net_file"]`. Wildcard values are forwarded to scripts via `params:` with lambdas, e.g., `dim = lambda wildcards: wildcards.dim`. Each `.smk` file defines an aggregation rule that collects all its outputs, and the main `rule all:` references these via `rules.stage_all.input`.
+Rules always use named inputs and outputs (not positional), so scripts access them by `snakemake.input["net_file"]`. Wildcard values are forwarded to scripts via `params:` with lambdas, e.g., `dim = lambda wildcards: wildcards.dim`. Each `.smk` file defines an aggregation rule that collects all its outputs, and the main `rule all:` references these via `rules.stage_all.input`.
 
 Scripts are written in dual-mode: they read from `snakemake.input` / `snakemake.params` when run in the pipeline, and fall back to hardcoded paths in an `else` block for interactive development and testing. This way you can iterate on a script in a notebook or terminal without running the full pipeline.
 
