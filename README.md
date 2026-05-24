@@ -13,14 +13,26 @@ But Snakemake is flexible enough to become messy. Over the years I've settled on
 
 ## Installation
 
-**Claude Code:**
+### Using `npx skills` (works across agents)
+
+[`npx skills`](https://github.com/vercel-labs/skills) is a package manager for AI agent skills. It installs to Claude Code, Codex, Cursor, and others.
+
 ```bash
-npx claude-code skills add skojaku/snakemake-skill
+# Install to all detected agents
+npx skills add skojaku/snakemake-skill --all
+
+# Or target a specific agent
+npx skills add skojaku/snakemake-skill -a claude-code
+npx skills add skojaku/snakemake-skill -a codex
 ```
 
-**OpenAI Codex / Cursor / other agents:** Copy `skills/snakemake/SKILL.md` into your system prompt, project instructions, or `AGENTS.md`.
+### Manual install
 
-### As a standalone utility
+**Claude Code:** Copy `skills/snakemake/SKILL.md` to `~/.claude/skills/snakemake/SKILL.md`
+
+**Codex / Cursor / other agents:** Copy the contents of `skills/snakemake/SKILL.md` into your `AGENTS.md` or system prompt.
+
+### As a standalone utility (no AI agent needed)
 
 Copy `skills/snakemake/utils.smk` to your project root:
 
