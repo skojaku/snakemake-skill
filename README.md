@@ -32,44 +32,25 @@ include: "./utils.smk"
 
 All file path constants are `UPPER_CASE` and built with `j()` (alias for `os.path.join`). When a path depends on parameters, use `to_paramspace().wildcard_pattern` to generate the wildcard portion of the filename. This keeps parameterized paths consistent and parseable, e.g., `model_dim~64_lr~0.001.pt`, without ever hand-building `key~value` strings.
 
-Parameters are defined as plain Python dicts where every value is a list, even single values like `{"dim": [64]}`. `to_paramspace()` takes the Cartesian product, so adding a new parameter or value to the dict automatically generates all combinations. 
-
-Rules always use named inputs and outputs (not positional), so scripts access them by `snakemake.input["net_file"]`. Wildcard values are forwarded to scripts via `params:` with lambdas, e.g., `dim = lambda wildcards: wildcards.dim`. Each `.smk` file defines an aggregation rule that collects all its outputs, and the main `rule all:` references these via `rules.stage_all.input`.
-
-Scripts are written in dual-mode: they read from `snakemake.input` / `snakemake.params` when run in the pipeline, and fall back to hardcoded paths in an `else` block for interactive development and testing. This way you can iterate on a script in a notebook or terminal without running the full pipeline.
-
-When multiple rules share the same logic but differ in inputs or parameters (e.g., empirical vs. simulated data), use `use rule X as Y with:` to inherit the script and override only what changes. This avoids duplicating scripts and keeps the logic in one place.
-
-### Example
-
 ```python
-# Snakefile
 from os.path import join as j
 include: "./utils.smk"
-configfile: "workflow/config.yaml"
 
 DATA_DIR = config["data_dir"]
-DATA_LIST = ["physics", "biology"]
+INPUT_NET = j(DATA_DIR, "{data}", "preprocessed", "net.npz")
+```
 
-# Parameters: values are always lists
+Parameters are defined as plain Python dicts where every value is a list, even single values like `{"dim": [64]}`. `to_paramspace()` takes the Cartesian product, so adding a new parameter or value to the dict automatically generates all combinations.
+
+```python
 params_model = {"dim": [64, 128], "lr": [0.001]}
 model_ps = to_paramspace(params_model)
 
-# File paths: UPPER_CASE, parameterized via wildcard_pattern
-INPUT_NET = j(DATA_DIR, "{data}", "preprocessed", "net.npz")
 MODEL_FILE = j(DATA_DIR, "{data}", "derived", f"model_{model_ps.wildcard_pattern}.pt")
 # -> data/{data}/derived/model_dim~{dim}_lr~{lr}.pt
-
-FIG_FILE = j(DATA_DIR, "{data}", "figs", f"fig_{model_ps.wildcard_pattern}.pdf")
-
-include: "workflow/rules/fitting.smk"
-include: "workflow/rules/plot.smk"
-
-rule all:
-    input:
-        rules.fitting_all.input,
-        rules.plot_all.input,
 ```
+
+Rules always use named inputs and outputs (not positional), so scripts access them by `snakemake.input["net_file"]`. Wildcard values are forwarded to scripts via `params:` with lambdas. Each `.smk` file defines an aggregation rule that collects all its outputs, and the main `rule all:` references these via `rules.stage_all.input`.
 
 ```python
 # workflow/rules/fitting.smk
@@ -86,8 +67,21 @@ rule fit_model:
 
 rule fitting_all:
     input: expand(MODEL_FILE, params_model, data=DATA_LIST)
-    # expands to all combinations: 2 dims x 1 lr x 2 datasets = 4 files
+    # 2 dims x 1 lr x 2 datasets = 4 files
 ```
+
+```python
+# Snakefile
+include: "workflow/rules/fitting.smk"
+include: "workflow/rules/plot.smk"
+
+rule all:
+    input:
+        rules.fitting_all.input,
+        rules.plot_all.input,
+```
+
+Scripts are written in dual-mode: they read from `snakemake.input` / `snakemake.params` when run in the pipeline, and fall back to hardcoded paths in an `else` block for interactive development and testing. This way you can iterate on a script in a notebook or terminal without running the full pipeline. Note that params arrive as strings, so convert types explicitly.
 
 ```python
 # workflow/fitting/fit-model.py
@@ -96,8 +90,8 @@ import sys
 if "snakemake" in sys.modules:
     net_file = snakemake.input["net_file"]
     output_file = snakemake.output["output_file"]
-    dim = int(snakemake.params["dim"])
-    lr = float(snakemake.params["lr"])
+    dim = int(snakemake.params["dim"])         # str -> int
+    lr = float(snakemake.params["lr"])         # str -> float
 else:
     net_file = "data/physics/preprocessed/net.npz"
     output_file = "data/physics/derived/model.pt"
@@ -107,6 +101,15 @@ else:
 # Main logic (runs the same way in both modes)
 import numpy as np
 # ... training code ...
+```
+
+When multiple rules share the same logic but differ in inputs or parameters (e.g., empirical vs. simulated data), use `use rule X as Y with:` to inherit the script and override only what changes. This avoids duplicating scripts and keeps the logic in one place.
+
+```python
+use rule fit_model as fit_model_baseline with:
+    input: net_file = BASELINE_NET,
+    output: output_file = BASELINE_MODEL
+    params: dim = lambda wildcards: wildcards.dim,
 ```
 
 See `skills/snakemake/SKILL.md` for the full guide.
