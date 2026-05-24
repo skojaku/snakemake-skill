@@ -108,11 +108,25 @@ else:
 
 ## Recipes
 
-**New computation:** script in `workflow/<category>/` with dual-mode -> UPPER_CASE output path -> rule -> add to aggregation.
+### New computation
 
-**New parameter:** add to param dict as list -> paths auto-update via wildcard_pattern -> forward with lambda -> convert in script.
+1. Write script in `workflow/<category>/calc-something.py` using dual-mode pattern
+2. Define path in Snakefile or .smk: `OUTPUT_FILE = j(DATA_DIR, "{data}", "derived", "something.csv")`
+3. Write rule with named I/O pointing to that path
+4. Add to aggregation: `expand(OUTPUT_FILE, data=DATA_LIST)` in the `rule stage_all:`
 
-**New dataset:** `workflow/preprocessing/{dataset}/Snakefile` -> include -> add to DATA_LIST.
+### New parameter
+
+1. Add to param dict in Snakefile: `params_model = {"dim": [64], "new_param": [10, 20]}`
+2. File paths using `wildcard_pattern` auto-include it — no path changes needed
+3. Forward in rule: `params: new_param = lambda wildcards: wildcards.new_param,`
+4. Convert in script: `new_param = int(snakemake.params["new_param"])`
+
+### New dataset
+
+1. Create `workflow/preprocessing/my_dataset/Snakefile` with ingestion rules
+2. Include from main Snakefile: `include: "workflow/preprocessing/my_dataset/Snakefile"`
+3. Add to list: `DATA_LIST = ["dataset_a", "dataset_b", "my_dataset"]`
 
 ## Checklist
 
