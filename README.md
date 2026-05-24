@@ -2,7 +2,7 @@
 
 [Snakemake](https://snakemake.readthedocs.io/) is, in short, is a Python-based workflow manager that defines & manages analysis steps.
 
-I've used Snakemake since 2020 for all my research projects. Snakemake keeps my project reproducible as I go. For example:
+I've used Snakemake since 2020 for all my research projects. Snakemake keeps my projects reproducible as I go. For example:
 
 1. We sometimes want to change a part of scripts in an upperstream process of data. Snakemake identifies the dependencies of data and scripts, and rerun only the scripts that needed to update the results.
 2. We sometimes want to scale up the experiment, e.g., testing the same analysis with new data and new parameters. With Snakemake, I can simply add parameter values and paths to some lists. Snakemake then runs the analysis for *every* combination of parameters and data.
