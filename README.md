@@ -6,7 +6,7 @@
 
 **Claude Code:**
 ```bash
-claude skills add skojaku/snakemake-skill
+npx claude-code skills add skojaku/snakemake-skill
 ```
 
 **OpenAI Codex / Cursor / other agents:** Copy `skills/snakemake/SKILL.md` into your system prompt, project instructions, or `AGENTS.md`.
@@ -67,6 +67,10 @@ rule all:
 - **Reuse** — `use rule X as Y with:` instead of copying scripts
 
 See `skills/snakemake/SKILL.md` for the full guide.
+
+## Learn Snakemake
+
+New to Snakemake? See [TUTORIAL.md](TUTORIAL.md) for an introduction covering directives, wildcards, paramspace, recommended config, and links to real project examples.
 
 ## License
 
