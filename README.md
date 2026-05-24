@@ -40,6 +40,75 @@ Scripts are written in dual-mode: they read from `snakemake.input` / `snakemake.
 
 When multiple rules share the same logic but differ in inputs or parameters (e.g., empirical vs. simulated data), use `use rule X as Y with:` to inherit the script and override only what changes. This avoids duplicating scripts and keeps the logic in one place.
 
+### Example
+
+```python
+# Snakefile
+from os.path import join as j
+include: "./utils.smk"
+configfile: "workflow/config.yaml"
+
+DATA_DIR = config["data_dir"]
+DATA_LIST = ["physics", "biology"]
+
+# Parameters: values are always lists
+params_model = {"dim": [64, 128], "lr": [0.001]}
+model_ps = to_paramspace(params_model)
+
+# File paths: UPPER_CASE, parameterized via wildcard_pattern
+INPUT_NET = j(DATA_DIR, "{data}", "preprocessed", "net.npz")
+MODEL_FILE = j(DATA_DIR, "{data}", "derived", f"model_{model_ps.wildcard_pattern}.pt")
+# -> data/{data}/derived/model_dim~{dim}_lr~{lr}.pt
+
+FIG_FILE = j(DATA_DIR, "{data}", "figs", f"fig_{model_ps.wildcard_pattern}.pdf")
+
+include: "workflow/rules/fitting.smk"
+include: "workflow/rules/plot.smk"
+
+rule all:
+    input:
+        rules.fitting_all.input,
+        rules.plot_all.input,
+```
+
+```python
+# workflow/rules/fitting.smk
+rule fit_model:
+    input:
+        net_file = INPUT_NET,
+    output:
+        output_file = MODEL_FILE
+    params:
+        dim = lambda wildcards: wildcards.dim,
+        lr = lambda wildcards: wildcards.lr,
+    script:
+        "../fitting/fit-model.py"
+
+rule fitting_all:
+    input: expand(MODEL_FILE, params_model, data=DATA_LIST)
+    # expands to all combinations: 2 dims x 1 lr x 2 datasets = 4 files
+```
+
+```python
+# workflow/fitting/fit-model.py
+import sys
+
+if "snakemake" in sys.modules:
+    net_file = snakemake.input["net_file"]
+    output_file = snakemake.output["output_file"]
+    dim = int(snakemake.params["dim"])
+    lr = float(snakemake.params["lr"])
+else:
+    net_file = "data/physics/preprocessed/net.npz"
+    output_file = "data/physics/derived/model.pt"
+    dim = 64
+    lr = 0.001
+
+# Main logic (runs the same way in both modes)
+import numpy as np
+# ... training code ...
+```
+
 See `skills/snakemake/SKILL.md` for the full guide.
 
 ## What is Snakemake?
