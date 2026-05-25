@@ -24,19 +24,19 @@ project/
 ## Snakefile
 
 ```python
-from os.path import join as j
+from pathlib import Path
 include: "./utils.smk"
 configfile: "workflow/config.yaml"
 
-DATA_DIR = config["data_dir"]
+DATA_DIR = Path(config["data_dir"])
 DATA_LIST = ["dataset_a", "dataset_b"]
 
 params_model = {"dim": [64], "lr": [0.001]}  # values ALWAYS lists
 model_ps = to_paramspace(params_model)
 
-# Paths: UPPER_CASE, j(), wildcard_pattern in f-strings, {{x}} for literal braces
-INPUT_NET = j(DATA_DIR, "{data}", "preprocessed", "net.npz")
-MODEL_FILE = j(DATA_DIR, "{data}", "derived", f"model_{model_ps.wildcard_pattern}.pt")
+# Paths: UPPER_CASE, Path / operator, wildcard_pattern in f-strings, {{x}} for literal braces
+INPUT_NET = DATA_DIR / "{data}" / "preprocessed" / "net.npz"
+MODEL_FILE = DATA_DIR / "{data}" / "derived" / f"model_{model_ps.wildcard_pattern}.pt"
 
 include: "workflow/rules/stage_a.smk"
 rule all:
@@ -88,7 +88,7 @@ else:
 
 ## Recipes
 
-**New computation:** dual-mode script in `workflow/<category>/` -> `OUTPUT = j(...)` -> rule -> add `expand(OUTPUT, ...)` to aggregation rule.
+**New computation:** dual-mode script in `workflow/<category>/` -> `OUTPUT = DATA_DIR / ...` -> rule -> add `expand(OUTPUT, ...)` to aggregation rule.
 
 **New parameter:** add to param dict as list -> paths auto-update via `wildcard_pattern` -> `params: x = lambda w: w.x` -> `int(snakemake.params["x"])` in script.
 
@@ -96,7 +96,7 @@ else:
 
 ## Checklist
 
-- UPPER_CASE paths, list-valued params, `j()` everywhere
+- UPPER_CASE paths, list-valued params, `Path /` for all paths
 - `to_paramspace()` + `.wildcard_pattern`, never hand-build `key~value`
 - Custom `expand()`, not built-in
 - Named I/O, dual-mode scripts, type conversion
