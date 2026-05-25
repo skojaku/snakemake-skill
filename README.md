@@ -134,15 +134,14 @@ A workflow consists of *rules*. Each rule takes a file and generates another fil
 
 ## Open question: conventions in the AI era
 
-These conventions were designed when humans wrote every line of the Snakefile. That's no longer the case. AI agents write most of the workflow code now, and that changes the calculus.
+I designed these conventions when I wrote every line of the Snakefile myself. That's changed. I don't even write Snakefiles these days, I review what AI generates. So some things I cared about before matter less now:
 
-Some conventions mattered because they made *writing* easier for humans. Short aliases like `j()`, terse syntax, compact patterns. Those matter less now because AI writes the code. We switched to `pathlib.Path` not because AI needs it, but because it's more readable when humans *review* AI-generated code.
+1. I used `j()` because it was fast to type. AI doesn't care about that. I switched to `pathlib.Path` because it's easier to *read* when reviewing AI-generated code.
+2. I encode parameters in filenames (`model_dim~64_lr~0.001.pt`) so I can `ls`, `grep`, and `rm` by pattern. The alternative is short hashes (`4f8c2e.pt`) with a registry. AI can look up hashes instantly, so the readability argument weakens. But filenames are the one thing that's always visible, when I share files with collaborators, debug on a remote machine, or just want to see what happened. No tooling needed.
 
-A harder question is metadata in filenames. We encode parameters directly in filenames (`model_dim~64_lr~0.001.pt`) so you can `ls`, `grep`, and `rm` by pattern without any tooling. The alternative is short hashes (`4f8c2e.pt`) with a registry. AI can look up hashes instantly, so the human-readability argument weakens. But filenames are the one thing that's always visible: when you share files, debug on a remote machine, or just want to see what happened. No tooling, no lookup, no AI needed.
+A bigger question: should I optimize conventions for AI writing + human reviewing? Or should I let AI manage everything, including file organization, and just trust the agent? The more AI takes over, the less these conventions matter. But then it gets harder to understand what's going on when I need to.
 
-More broadly: should workflow conventions optimize for AI writing + human reviewing? Or should we let AI manage everything, including file organization, and just trust the agent? The more AI takes over, the less these conventions matter. But the less they matter, the harder it gets to understand what's going on when you need to.
-
-We don't have a settled answer. See [issue #1](https://github.com/skojaku/snakemake-skill/issues/1) for the ongoing discussion.
+I don't have a settled answer. See [issue #1](https://github.com/skojaku/snakemake-skill/issues/1) for the ongoing discussion.
 
 ## License
 
